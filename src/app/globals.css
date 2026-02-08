@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary-50: #f0f4f8;
+  --color-primary-100: #d9e2ec;
+  --color-primary-200: #bcccdc;
+  --color-primary-300: #9fb3c8;
+  --color-primary-400: #829ab1;
+  --color-primary-500: #627d98;
+  --color-primary-600: #486581;
+  --color-primary-700: #334e68;
+  --color-primary-800: #243b53;
+  --color-primary-900: #102a43;
+
+  --color-accent-50: #f0fff4;
+  --color-accent-100: #c6f6d5;
+  --color-accent-200: #9ae6b4;
+  --color-accent-300: #68d391;
+  --color-accent-400: #48bb78;
+  --color-accent-500: #38a169;
+  --color-accent-600: #2f855a;
+  --color-accent-700: #276749;
+  --color-accent-800: #22543d;
+  --color-accent-900: #1c4532;
+
+  --font-urdu: var(--font-noto-nastaliq);
+  --font-english: var(--font-inter);
+}
+
+:root {
+  --background: #f9fafb;
+  --foreground: #111827;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Urdu mode: Nastaliq font */
+html[dir="rtl"] body {
+  font-family: var(--font-urdu), sans-serif;
+}
+
+/* English mode: Inter font */
+html[dir="ltr"] body {
+  font-family: var(--font-english), sans-serif;
+}
+
+/* Number inputs always LTR for digit readability */
+input[type="number"],
+input[type="tel"] {
+  direction: ltr;
+}
+
+html[dir="rtl"] input[type="number"],
+html[dir="rtl"] input[type="tel"] {
+  text-align: right;
+}
+
+/* Common card style */
+.card {
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  background-color: white;
+  padding: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+@media (min-width: 640px) {
+  .card {
+    padding: 1rem;
+  }
+}
