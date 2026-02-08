@@ -21,15 +21,34 @@ export async function assignCylinder(_prev: { error: string | null }, formData: 
     return { error: 'not_enough' }
   }
 
-  // Insert assignment
-  const { error: insertError } = await supabase.from('cylinder_assignments').insert({
-    client_id: clientId,
-    cylinder_type_id: cylinderTypeId,
-    quantity,
-    date,
-  })
+  // Check if an assignment already exists for same client + type + date
+  const { data: existing } = await supabase
+    .from('cylinder_assignments')
+    .select('id, quantity')
+    .eq('client_id', clientId)
+    .eq('cylinder_type_id', cylinderTypeId)
+    .eq('date', date)
+    .single()
 
-  if (insertError) throw insertError
+  if (existing) {
+    // Update existing record by adding the new quantity
+    const { error: updateError } = await supabase
+      .from('cylinder_assignments')
+      .update({ quantity: existing.quantity + quantity })
+      .eq('id', existing.id)
+
+    if (updateError) throw updateError
+  } else {
+    // Insert new assignment
+    const { error: insertError } = await supabase.from('cylinder_assignments').insert({
+      client_id: clientId,
+      cylinder_type_id: cylinderTypeId,
+      quantity,
+      date,
+    })
+
+    if (insertError) throw insertError
+  }
 
   // Deduct from inventory
   const { error: updateError } = await supabase

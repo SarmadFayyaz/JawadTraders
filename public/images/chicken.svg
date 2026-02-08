@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f0fff4"/>
+      <stop offset="100%" stop-color="#c6f6d5"/>
+    </linearGradient>
+    <linearGradient id="table" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e2e8f0"/>
+      <stop offset="100%" stop-color="#cbd5e0"/>
+    </linearGradient>
+    <linearGradient id="hen-body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fefcbf"/>
+      <stop offset="60%" stop-color="#ecc94b"/>
+      <stop offset="100%" stop-color="#d69e2e"/>
+    </linearGradient>
+    <linearGradient id="hen-body2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff5f5"/>
+      <stop offset="60%" stop-color="#fed7d7"/>
+      <stop offset="100%" stop-color="#fc8181"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <!-- Ground -->
+  <rect x="0" y="380" width="800" height="120" fill="#c6f6d5" opacity="0.5"/>
+  <ellipse cx="400" cy="385" rx="380" ry="8" fill="#9ae6b4" opacity="0.4"/>
+  <!-- Decorative leaves -->
+  <circle cx="80" cy="60" r="30" fill="#c6f6d5" opacity="0.5"/>
+  <circle cx="720" cy="70" r="40" fill="#c6f6d5" opacity="0.4"/>
+  <circle cx="400" cy="35" r="25" fill="#9ae6b4" opacity="0.3"/>
+  <!-- Fence -->
+  <rect x="50" y="310" width="8" height="80" rx="2" fill="#d69e2e" opacity="0.5"/>
+  <rect x="130" y="310" width="8" height="80" rx="2" fill="#d69e2e" opacity="0.5"/>
+  <rect x="210" y="310" width="8" height="80" rx="2" fill="#d69e2e" opacity="0.5"/>
+  <rect x="45" y="330" width="180" height="6" rx="2" fill="#d69e2e" opacity="0.5"/>
+  <rect x="45" y="360" width="180" height="6" rx="2" fill="#d69e2e" opacity="0.5"/>
+  <!-- Main hen (large, center) -->
+  <!-- Body -->
+  <ellipse cx="400" cy="290" rx="110" ry="80" fill="url(#hen-body)"/>
+  <ellipse cx="400" cy="290" rx="110" ry="80" fill="none" stroke="#b7791f" stroke-width="2.5"/>
+  <!-- Wing -->
+  <path d="M340 270 Q360 250 400 260 Q430 268 440 290 Q420 280 380 278 Q350 278 340 270Z" fill="#ecc94b" stroke="#b7791f" stroke-width="1.5"/>
+  <path d="M350 280 Q370 265 400 272" stroke="#d69e2e" stroke-width="1" fill="none"/>
+  <path d="M355 290 Q375 278 398 282" stroke="#d69e2e" stroke-width="1" fill="none"/>
+  <!-- Neck -->
+  <path d="M470 260 Q490 220 485 180" stroke="#b7791f" stroke-width="2" fill="none"/>
+  <path d="M460 265 Q480 225 478 185 Q488 185 490 180 Q495 220 475 260Z" fill="url(#hen-body)" stroke="#b7791f" stroke-width="1.5"/>
+  <!-- Head -->
+  <circle cx="482" cy="168" r="30" fill="#fefcbf" stroke="#b7791f" stroke-width="2"/>
+  <!-- Comb -->
+  <path d="M465 142 Q470 120 478 125 Q480 115 488 122 Q492 112 498 125 Q505 118 502 138" fill="#e53e3e" stroke="#c53030" stroke-width="1.5" stroke-linejoin="round"/>
+  <!-- Eye -->
+  <circle cx="494" cy="162" r="5" fill="white" stroke="#2d3748" stroke-width="1.5"/>
+  <circle cx="496" cy="161" r="2.5" fill="#2d3748"/>
+  <circle cx="497" cy="160" r="1" fill="white"/>
+  <!-- Beak -->
+  <path d="M510 170 L530 168 L515 180Z" fill="#ed8936" stroke="#c05621" stroke-width="1.5" stroke-linejoin="round"/>
+  <!-- Wattle -->
+  <path d="M505 180 Q510 195 503 200 Q498 195 502 183" fill="#e53e3e" stroke="#c53030" stroke-width="1"/>
+  <!-- Tail feathers -->
+  <path d="M295 260 Q260 220 270 170" stroke="#b7791f" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M300 265 Q270 230 285 180" stroke="#d69e2e" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <path d="M305 270 Q280 240 298 195" stroke="#ecc94b" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <path d="M290 268 Q255 238 260 185" stroke="#b7791f" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <!-- Legs -->
+  <path d="M370 365 L365 400 L350 412" stroke="#c05621" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M365 400 L370 415" stroke="#c05621" stroke-width="3" stroke-linecap="round"/>
+  <path d="M365 400 L380 410" stroke="#c05621" stroke-width="3" stroke-linecap="round"/>
+  <path d="M430 365 L435 400 L420 412" stroke="#c05621" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M435 400 L440 415" stroke="#c05621" stroke-width="3" stroke-linecap="round"/>
+  <path d="M435 400 L450 410" stroke="#c05621" stroke-width="3" stroke-linecap="round"/>
+  <!-- Small chick 1 -->
+  <ellipse cx="600" cy="370" rx="25" ry="18" fill="#fefcbf" stroke="#d69e2e" stroke-width="1.5"/>
+  <circle cx="612" cy="360" r="10" fill="#fefcbf" stroke="#d69e2e" stroke-width="1.5"/>
+  <circle cx="616" cy="358" r="2" fill="#2d3748"/>
+  <path d="M622 360 L630 358 L624 364Z" fill="#ed8936" stroke="#c05621" stroke-width="0.8"/>
+  <path d="M607 350 Q610 344 614 348" fill="#e53e3e"/>
+  <path d="M593 385 L591 395 L586 398" stroke="#c05621" stroke-width="2" stroke-linecap="round"/>
+  <path d="M607 385 L609 395 L614 398" stroke="#c05621" stroke-width="2" stroke-linecap="round"/>
+  <!-- Small chick 2 -->
+  <ellipse cx="660" cy="375" rx="22" ry="16" fill="#fefcbf" stroke="#d69e2e" stroke-width="1.5"/>
+  <circle cx="672" cy="366" r="9" fill="#fefcbf" stroke="#d69e2e" stroke-width="1.5"/>
+  <circle cx="676" cy="364" r="1.8" fill="#2d3748"/>
+  <path d="M681 366 L688 364 L683 370Z" fill="#ed8936" stroke="#c05621" stroke-width="0.8"/>
+  <path d="M668 358 Q671 352 674 356" fill="#e53e3e"/>
+  <path d="M653 389 L651 398 L647 400" stroke="#c05621" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M665 389 L667 398 L671 400" stroke="#c05621" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Feed/grain dots on ground -->
+  <circle cx="550" cy="400" r="2" fill="#d69e2e"/>
+  <circle cx="565" cy="405" r="1.5" fill="#b7791f"/>
+  <circle cx="540" cy="408" r="2" fill="#d69e2e"/>
+  <circle cx="580" cy="398" r="1.5" fill="#b7791f"/>
+  <circle cx="620" cy="410" r="2" fill="#d69e2e"/>
+  <circle cx="640" cy="408" r="1.5" fill="#b7791f"/>
+  <!-- Weighing scale -->
+  <rect x="100" y="250" width="100" height="70" rx="6" fill="#f7fafc" stroke="#4a5568" stroke-width="2"/>
+  <rect x="112" y="262" width="76" height="34" rx="3" fill="#1a202c"/>
+  <text x="150" y="286" text-anchor="middle" font-size="17" font-weight="bold" fill="#48bb78" font-family="monospace">2.5kg</text>
+  <rect x="115" y="302" width="22" height="6" rx="2" fill="#a0aec0"/>
+  <rect x="143" y="302" width="22" height="6" rx="2" fill="#a0aec0"/>
+  <rect x="171" y="302" width="22" height="6" rx="2" fill="#a0aec0"/>
+  <!-- Fresh badge -->
+  <circle cx="150" cy="180" r="38" fill="#38a169"/>
+  <text x="150" y="175" text-anchor="middle" font-size="12" font-weight="bold" fill="white">100%</text>
+  <text x="150" y="195" text-anchor="middle" font-size="15" font-weight="bold" fill="white">FRESH</text>
+  <!-- Price tag -->
+  <rect x="640" y="120" width="110" height="55" rx="8" fill="#fff5f5" stroke="#fc8181" stroke-width="2"/>
+  <text x="695" y="148" text-anchor="middle" font-size="14" fill="#e53e3e" font-weight="bold">Rs/kg</text>
+  <text x="695" y="167" text-anchor="middle" font-size="11" fill="#718096">Fresh Daily</text>
+</svg>

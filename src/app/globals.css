@@ -75,3 +75,41 @@ html[dir="rtl"] input[type="tel"] {
     padding: 1rem;
   }
 }
+
+/* Parallax background sections */
+.parallax-section {
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* Fix for mobile where background-attachment: fixed doesn't work well */
+@supports (-webkit-touch-callout: none) {
+  .parallax-section {
+    background-attachment: scroll;
+  }
+}
+
+/* Service card image area */
+.card-image-area {
+  border-radius: 0.75rem 0.75rem 0 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.card-image-area img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.service-card:hover .card-image-area img {
+  transform: scale(1.05);
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
