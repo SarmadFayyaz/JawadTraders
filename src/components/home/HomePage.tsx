@@ -501,7 +501,7 @@ export function HomePage() {
             <div className="flex flex-col gap-3 text-sm text-primary-300 sm:items-end">
               <a href="tel:+923472889787" className="flex items-center gap-3 transition hover:text-white"><PhoneIcon /> +92 347 2889787</a>
               <a href="mailto:jawadramzan556@gmail.com" className="flex items-center gap-3 transition hover:text-white"><MailIcon /> jawadramzan556@gmail.com</a>
-              <div className="flex items-center gap-3"><ClockIcon /> {labels.businessHoursValue}</div>
+              <div className="flex items-center gap-3 whitespace-pre-line"><ClockIcon /> {labels.businessHoursValue}</div>
             </div>
           </div>
           <div className="mt-10 border-t border-primary-800 pt-8 text-center text-xs text-primary-400">
@@ -529,7 +529,7 @@ function ContactCard({ icon, label, value, href, external }: { icon: React.React
     <>
       <div className="mb-4 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary-50 text-primary-700">{icon}</div>
       <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">{label}</p>
-      <p className="mt-2 flex-1 text-sm font-medium leading-snug text-gray-800">{value}</p>
+      <p className="mt-2 flex-1 whitespace-pre-line text-sm font-medium leading-snug text-gray-800">{value}</p>
     </>
   )
   const cls = "flex h-full w-full flex-col items-center rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 sm:p-8"
