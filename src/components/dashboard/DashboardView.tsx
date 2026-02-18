@@ -1,8 +1,9 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/lib/language-context'
 import { CURRENCY } from '@/lib/constants'
-import { formatDate } from '@/lib/utils'
+import { DatePicker } from '@/components/ui/DatePicker'
 import type { ChickenRecord, CylinderType, Vegetable } from '@/types/database'
 
 interface AssignmentWithType {
@@ -18,18 +19,22 @@ export function DashboardView({
   cylinderTypes,
   vegetables,
   chickenRecords,
-  today,
+  selectedDate,
 }: {
   assignments: AssignmentWithType[]
   cylinderTypes: CylinderType[]
   vegetables: Vegetable[]
   chickenRecords: ChickenRecord[]
-  today: string
+  selectedDate: string
 }) {
-  const { labels, dateLocale } = useLanguage()
+  const { labels } = useLanguage()
+  const router = useRouter()
 
-  // Cylinder summary: no_of_cylinders is current available (decremented by assignments)
-  // total = available + today's assigned
+  function handleDateChange(newDate: string) {
+    router.push(`/dashboard?date=${newDate}`)
+  }
+
+  // Cylinder summary
   const assignedByType = new Map<string, number>()
   for (const a of assignments) {
     const name = a.cylinder_types.name
@@ -62,9 +67,13 @@ export function DashboardView({
 
   return (
     <div className="space-y-6">
+      {/* Header with date picker */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-xl font-bold sm:text-2xl">{labels.todaySummary}</h1>
-        <p className="text-sm text-gray-500">{formatDate(today, dateLocale)}</p>
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium">{labels.date}:</label>
+          <DatePicker value={selectedDate} onChange={handleDateChange} />
+        </div>
       </div>
 
       {/* Cylinders Assigned Today */}

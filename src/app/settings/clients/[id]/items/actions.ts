@@ -15,9 +15,10 @@ export async function addItem(formData: FormData) {
     date: formData.get('date') as string,
   })
 
-  if (error) throw error
+  if (error) return { error: error.message || 'Error' }
 
   revalidatePath(`/settings/clients/${clientId}/items`)
+  return { success: true }
 }
 
 export async function deleteItem(formData: FormData) {
@@ -28,7 +29,8 @@ export async function deleteItem(formData: FormData) {
 
   const { error } = await supabase.from('client_items').delete().eq('id', id)
 
-  if (error) throw error
+  if (error) return { error: error.message || 'Error' }
 
   revalidatePath(`/settings/clients/${clientId}/items`)
+  return { success: true }
 }

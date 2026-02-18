@@ -24,7 +24,7 @@ export async function addChickenRecord(formData: FormData) {
     const remainingWeight = bought.reduce((s, r) => s + r.weight_kg, 0) - sold.reduce((s, r) => s + r.weight_kg, 0)
 
     if (quantity > remainingQty || weight_kg > remainingWeight) {
-      throw new Error('Sold cannot exceed remaining quantity')
+      return { error: 'Sold cannot exceed remaining quantity' }
     }
   }
 
@@ -38,9 +38,10 @@ export async function addChickenRecord(formData: FormData) {
     date,
   })
 
-  if (error) throw error
+  if (error) return { error: error.message }
 
   revalidatePath(`/chicken?date=${date}`)
+  return { success: true }
 }
 
 export async function deleteChickenRecord(formData: FormData) {
@@ -51,7 +52,8 @@ export async function deleteChickenRecord(formData: FormData) {
 
   const { error } = await supabase.from('chicken_records').delete().eq('id', id)
 
-  if (error) throw error
+  if (error) return { error: error.message }
 
   revalidatePath(`/chicken?date=${date}`)
+  return { success: true }
 }

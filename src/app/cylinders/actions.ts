@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 
-export async function assignCylinder(_prev: { error: string | null }, formData: FormData) {
+export async function assignCylinder(formData: FormData) {
   const supabase = await createClient()
   const clientId = formData.get('client_id') as string
   const cylinderTypeId = formData.get('cylinder_type_id') as string
@@ -37,7 +37,7 @@ export async function assignCylinder(_prev: { error: string | null }, formData: 
       .update({ quantity: existing.quantity + quantity })
       .eq('id', existing.id)
 
-    if (updateError) throw updateError
+    if (updateError) return { error: updateError.message }
   } else {
     // Insert new assignment
     const { error: insertError } = await supabase.from('cylinder_assignments').insert({
@@ -47,7 +47,7 @@ export async function assignCylinder(_prev: { error: string | null }, formData: 
       date,
     })
 
-    if (insertError) throw insertError
+    if (insertError) return { error: insertError.message }
   }
 
   // Deduct from inventory
@@ -56,14 +56,14 @@ export async function assignCylinder(_prev: { error: string | null }, formData: 
     .update({ no_of_cylinders: cylinderType.no_of_cylinders - quantity })
     .eq('id', cylinderTypeId)
 
-  if (updateError) throw updateError
+  if (updateError) return { error: updateError.message }
 
   revalidatePath('/cylinders')
   revalidatePath('/settings/cylinder-types')
-  return { error: null }
+  return { success: true }
 }
 
-export async function updateAssignment(_prev: { error: string | null }, formData: FormData) {
+export async function updateAssignment(formData: FormData) {
   const supabase = await createClient()
   const id = formData.get('id') as string
   const newQuantity = parseInt(formData.get('quantity') as string, 10)
@@ -97,7 +97,7 @@ export async function updateAssignment(_prev: { error: string | null }, formData
       .update({ quantity: newQuantity })
       .eq('id', id)
 
-    if (updateError) throw updateError
+    if (updateError) return { error: updateError.message }
 
     // Adjust inventory (subtract diff: positive diff means more assigned, negative means returned)
     const { error: invError } = await supabase
@@ -105,12 +105,12 @@ export async function updateAssignment(_prev: { error: string | null }, formData
       .update({ no_of_cylinders: cylinderType.no_of_cylinders - diff })
       .eq('id', assignment.cylinder_type_id)
 
-    if (invError) throw invError
+    if (invError) return { error: invError.message }
   }
 
   revalidatePath('/cylinders')
   revalidatePath('/settings/cylinder-types')
-  return { error: null }
+  return { success: true }
 }
 
 export async function deleteAssignment(formData: FormData) {
@@ -124,7 +124,7 @@ export async function deleteAssignment(formData: FormData) {
     .eq('id', id)
     .single()
 
-  if (!assignment) return
+  if (!assignment) return { error: 'Assignment not found' }
 
   // Delete the assignment
   const { error: deleteError } = await supabase
@@ -132,7 +132,7 @@ export async function deleteAssignment(formData: FormData) {
     .delete()
     .eq('id', id)
 
-  if (deleteError) throw deleteError
+  if (deleteError) return { error: deleteError.message }
 
   // Return cylinders to inventory
   const { data: cylinderType } = await supabase
@@ -147,9 +147,10 @@ export async function deleteAssignment(formData: FormData) {
       .update({ no_of_cylinders: cylinderType.no_of_cylinders + assignment.quantity })
       .eq('id', assignment.cylinder_type_id)
 
-    if (updateError) throw updateError
+    if (updateError) return { error: updateError.message }
   }
 
   revalidatePath('/cylinders')
   revalidatePath('/settings/cylinder-types')
+  return { success: true }
 }

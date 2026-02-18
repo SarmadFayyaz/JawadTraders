@@ -65,6 +65,75 @@ export interface CylinderAssignment {
   created_at: string
 }
 
+export interface Customer {
+  id: string
+  name: string
+  phone: string | null
+  balance: number
+  created_at: string
+  updated_at: string
+}
+
+export interface DailySaleSheet {
+  id: string
+  date: string
+  total_cylinders: number
+  total_gas_kg: number
+  created_at: string
+}
+
+export type SaleType = 'gas' | 'other'
+
+export interface DailySale {
+  id: string
+  date: string
+  customer_id: string
+  sale_type: SaleType
+  gas_kg: number | null
+  total_amount: number
+  paid: number
+  remaining: number
+  created_at: string
+}
+
+export interface DailySaleWithCustomer extends DailySale {
+  customers: Pick<Customer, 'name' | 'phone'>
+}
+
+export interface Employee {
+  id: string
+  name: string
+  phone: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface SalaryRecord {
+  id: string
+  employee_id: string
+  month: string
+  total_pay: number
+  paid: number
+  remaining: number
+  created_at: string
+  updated_at: string
+}
+
+export interface SalaryRecordWithEmployee extends SalaryRecord {
+  employees: Pick<Employee, 'name' | 'phone'>
+}
+
+export interface Supplier {
+  id: string
+  name: string
+  phone: string | null
+  total_bill: number
+  paid: number
+  remaining: number
+  created_at: string
+  updated_at: string
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -102,6 +171,36 @@ export interface Database {
         Row: CylinderAssignment
         Insert: Omit<CylinderAssignment, 'id' | 'created_at'>
         Update: Partial<Omit<CylinderAssignment, 'id' | 'created_at'>>
+      }
+      customers: {
+        Row: Customer
+        Insert: Omit<Customer, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<Customer, 'id' | 'created_at' | 'updated_at'>>
+      }
+      daily_sale_sheets: {
+        Row: DailySaleSheet
+        Insert: Omit<DailySaleSheet, 'id' | 'created_at'>
+        Update: Partial<Omit<DailySaleSheet, 'id' | 'created_at'>>
+      }
+      daily_sales: {
+        Row: DailySale
+        Insert: Omit<DailySale, 'id' | 'created_at'>
+        Update: Partial<Omit<DailySale, 'id' | 'created_at'>>
+      }
+      employees: {
+        Row: Employee
+        Insert: Omit<Employee, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<Employee, 'id' | 'created_at' | 'updated_at'>>
+      }
+      salary_records: {
+        Row: SalaryRecord
+        Insert: Omit<SalaryRecord, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<SalaryRecord, 'id' | 'created_at' | 'updated_at'>>
+      }
+      suppliers: {
+        Row: Supplier
+        Insert: Omit<Supplier, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<Supplier, 'id' | 'created_at' | 'updated_at'>>
       }
     }
     Views: Record<string, never>

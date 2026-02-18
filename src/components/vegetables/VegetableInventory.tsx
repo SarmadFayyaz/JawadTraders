@@ -3,9 +3,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/lib/language-context'
+import { useToast } from '@/lib/toast-context'
 import { VEGETABLE_UNITS, CURRENCY } from '@/lib/constants'
-import { formatDate } from '@/lib/utils'
 import { addVegetable, updateVegetable, deleteVegetable } from '@/app/vegetables/actions'
+import { Modal } from '@/components/ui/Modal'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { DatePicker } from '@/components/ui/DatePicker'
+import { SearchableSelect } from '@/components/ui/SearchableSelect'
 import type { Vegetable, VegetableName } from '@/types/database'
 
 export function VegetableInventory({
@@ -17,9 +21,11 @@ export function VegetableInventory({
   vegetableNames: VegetableName[]
   selectedDate: string
 }) {
-  const { labels, dateLocale } = useLanguage()
+  const { labels } = useLanguage()
+  const { showSuccess, showError } = useToast()
   const router = useRouter()
   const [selectedName, setSelectedName] = useState('')
+  const [showAddModal, setShowAddModal] = useState(false)
 
   const selectedVn = vegetableNames.find((v) => v.name === selectedName)
   const selectedUnitObj = VEGETABLE_UNITS.find((u) => u.value === selectedVn?.unit)
@@ -37,43 +43,57 @@ export function VegetableInventory({
 
   return (
     <div className="space-y-6">
-      {/* Header with date filter */}
+      {/* Header with buttons and date picker */}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-xl font-bold sm:text-2xl">{labels.vegetableInventory}</h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-xl font-bold sm:text-2xl">{labels.vegetableInventory}</h1>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
+          >
+            {labels.addVegetable}
+          </button>
+        </div>
         <div className="flex items-center gap-2">
           <label className="text-sm font-medium">{labels.date}:</label>
-          <input
-            type="date"
+          <DatePicker
             value={selectedDate}
-            onChange={(e) => handleDateChange(e.target.value)}
-            dir="ltr"
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+            onChange={handleDateChange}
           />
         </div>
       </div>
 
-      <p className="text-sm text-gray-500">{formatDate(selectedDate, dateLocale)}</p>
-
-      {/* Add vegetable form */}
-      <form action={addVegetable} className="card space-y-4 p-4 sm:p-6">
-        <h2 className="text-base font-semibold sm:text-lg">{labels.addVegetable}</h2>
-        <input type="hidden" name="date" value={selectedDate} />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      {/* Add Vegetable Modal */}
+      <Modal
+        open={showAddModal}
+        onClose={() => { setShowAddModal(false); setSelectedName('') }}
+        title={labels.addVegetable}
+      >
+        <form
+          action={async (formData) => {
+            const result = await addVegetable(formData)
+            if (result?.success) {
+              showSuccess(labels.successSaved)
+              setShowAddModal(false)
+              setSelectedName('')
+            } else {
+              showError(result?.error || labels.errorOccurred)
+            }
+          }}
+          className="space-y-4"
+        >
+          <input type="hidden" name="date" value={selectedDate} />
           <div>
             <label className="mb-1 block text-sm font-medium">{labels.vegetableName}</label>
             {vegetableNames.length > 0 ? (
-              <select
+              <SearchableSelect
                 name="name"
                 required
                 value={selectedName}
-                onChange={(e) => setSelectedName(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-              >
-                <option value="">{labels.vegetableName}</option>
-                {vegetableNames.map((vn) => (
-                  <option key={vn.id} value={vn.name}>{vn.name}</option>
-                ))}
-              </select>
+                onChange={setSelectedName}
+                placeholder={labels.vegetableName}
+                options={vegetableNames.map((vn) => ({ value: vn.name, label: vn.name }))}
+              />
             ) : (
               <input
                 type="text"
@@ -119,14 +139,23 @@ export function VegetableInventory({
               </span>
             </div>
           </div>
-        </div>
-        <button
-          type="submit"
-          className="rounded-lg bg-primary-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700"
-        >
-          {labels.save}
-        </button>
-      </form>
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              className="flex-1 rounded-lg bg-green-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
+            >
+              {labels.save}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setShowAddModal(false); setSelectedName('') }}
+              className="flex-1 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
+            >
+              {labels.cancel}
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Vegetable cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -168,7 +197,8 @@ function VegetableCard({
   selectedDate: string
   labels: Record<string, string>
 }) {
-  const [confirming, setConfirming] = useState(false)
+  const { showSuccess, showError } = useToast()
+  const [deleteOpen, setDeleteOpen] = useState(false)
   const [showSoldModal, setShowSoldModal] = useState(false)
 
   return (
@@ -176,29 +206,12 @@ function VegetableCard({
       <div className="card p-4 sm:p-5">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-base font-semibold sm:text-lg">{veg.name}</h3>
-          {!confirming ? (
-            <button
-              onClick={() => setConfirming(true)}
-              className="text-sm text-red-600 hover:underline"
-            >
-              {labels.deleteClient}
-            </button>
-          ) : (
-            <form action={deleteVegetable} className="inline-flex items-center gap-2">
-              <input type="hidden" name="id" value={veg.id} />
-              <input type="hidden" name="date" value={selectedDate} />
-              <button type="submit" className="text-sm font-medium text-red-700 hover:underline">
-                ✓
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirming(false)}
-                className="text-sm font-medium text-gray-500 hover:underline"
-              >
-                ✕
-              </button>
-            </form>
-          )}
+          <button
+            onClick={() => setDeleteOpen(true)}
+            className="text-sm text-red-600 hover:underline"
+          >
+            {labels.deleteClient}
+          </button>
         </div>
 
         <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -237,44 +250,21 @@ function VegetableCard({
         </button>
       </div>
 
-      {showSoldModal && (
-        <SoldModal
-          veg={veg}
-          unit={unit}
-          selectedDate={selectedDate}
-          labels={labels}
-          onClose={() => setShowSoldModal(false)}
-        />
-      )}
-    </>
-  )
-}
-
-function SoldModal({
-  veg,
-  unit,
-  selectedDate,
-  labels,
-  onClose,
-}: {
-  veg: Vegetable
-  unit: string
-  selectedDate: string
-  labels: Record<string, string>
-  onClose: () => void
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4" onClick={onClose}>
-      <div className="w-full max-w-sm rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-2xl sm:p-6" onClick={(e) => e.stopPropagation()}>
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-base font-semibold sm:text-lg">{veg.name} — {labels.sold}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
-        </div>
-
+      {/* Sold Modal using shared Modal component */}
+      <Modal
+        open={showSoldModal}
+        onClose={() => setShowSoldModal(false)}
+        title={`${veg.name} — ${labels.sold}`}
+      >
         <form
           action={async (formData) => {
-            await updateVegetable(formData)
-            onClose()
+            const result = await updateVegetable(formData)
+            if (result?.success) {
+              showSuccess(labels.successSaved)
+              setShowSoldModal(false)
+            } else {
+              showError(result?.error || labels.errorOccurred)
+            }
           }}
           className="space-y-4"
         >
@@ -330,14 +320,35 @@ function SoldModal({
             </button>
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => setShowSoldModal(false)}
               className="flex-1 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
             >
               {labels.cancel}
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </Modal>
+
+      <ConfirmModal
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={async () => {
+          const formData = new FormData()
+          formData.append('id', veg.id)
+          formData.append('date', selectedDate)
+          const result = await deleteVegetable(formData)
+          if (result?.success) {
+            showSuccess(labels.successDeleted)
+            setDeleteOpen(false)
+          } else {
+            showError(result?.error || labels.errorOccurred)
+          }
+        }}
+        title={labels.deleteClient}
+        message={labels.deleteConfirm}
+        confirmLabel={labels.deleteClient}
+        cancelLabel={labels.cancel}
+      />
+    </>
   )
 }

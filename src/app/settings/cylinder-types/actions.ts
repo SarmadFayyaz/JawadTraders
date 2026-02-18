@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 
-export async function addCylinderType(_prev: { error: string | null }, formData: FormData) {
+export async function addCylinderType(formData: FormData) {
   const supabase = await createClient()
   const name = (formData.get('name') as string).trim()
 
@@ -25,13 +25,13 @@ export async function addCylinderType(_prev: { error: string | null }, formData:
     no_of_cylinders: parseInt(formData.get('no_of_cylinders') as string, 10),
   })
 
-  if (error) throw error
+  if (error) return { error: error.message }
 
   revalidatePath('/settings/cylinder-types')
-  return { error: null }
+  return { success: true }
 }
 
-export async function updateCylinderType(_prev: { error: string | null }, formData: FormData) {
+export async function updateCylinderType(formData: FormData) {
   const supabase = await createClient()
   const id = formData.get('id') as string
   const name = (formData.get('name') as string).trim()
@@ -58,10 +58,10 @@ export async function updateCylinderType(_prev: { error: string | null }, formDa
     })
     .eq('id', id)
 
-  if (error) throw error
+  if (error) return { error: error.message }
 
   revalidatePath('/settings/cylinder-types')
-  return { error: null }
+  return { success: true }
 }
 
 export async function deleteCylinderType(formData: FormData) {
@@ -71,7 +71,8 @@ export async function deleteCylinderType(formData: FormData) {
 
   const { error } = await supabase.from('cylinder_types').delete().eq('id', id)
 
-  if (error) throw error
+  if (error) return { error: error.message }
 
   revalidatePath('/settings/cylinder-types')
+  return { success: true }
 }

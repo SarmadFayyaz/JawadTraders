@@ -1,9 +1,13 @@
 'use client'
 
-import { useState, useActionState } from 'react'
+import { useState } from 'react'
 import { useLanguage } from '@/lib/language-context'
+import { useToast } from '@/lib/toast-context'
 import { VEGETABLE_UNITS } from '@/lib/constants'
 import { addVegetableName, updateVegetableName, deleteVegetableName } from '@/app/settings/vegetables/actions'
+import { Modal } from '@/components/ui/Modal'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { SearchableSelect } from '@/components/ui/SearchableSelect'
 import type { VegetableName } from '@/types/database'
 
 export function VegetableNamesPage({
@@ -12,20 +16,47 @@ export function VegetableNamesPage({
   vegetableNames: VegetableName[]
 }) {
   const { labels } = useLanguage()
-  const [state, formAction] = useActionState(addVegetableName, { error: null as string | null })
+  const { showSuccess, showError } = useToast()
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [addError, setAddError] = useState<string | null>(null)
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold sm:text-2xl">{labels.manageVegetables}</h1>
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-xl font-bold sm:text-2xl">{labels.manageVegetables}</h1>
+        <button
+          onClick={() => { setShowAddModal(true); setAddError(null) }}
+          className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700"
+        >
+          {labels.addVegetableName}
+        </button>
+      </div>
 
-      {/* Add Vegetable Name Form */}
-      <form action={formAction} className="card space-y-4 p-4 sm:p-6">
-        <h2 className="text-base font-semibold text-primary-700 sm:text-lg">{labels.addVegetableName}</h2>
-        {state?.error === 'duplicate' && (
-          <p className="text-sm text-red-600">{labels.duplicateName}</p>
-        )}
-        <div className="flex flex-wrap items-end gap-3 sm:gap-4">
-          <div className="w-full sm:w-auto sm:flex-1">
+      {/* Add Vegetable Name Modal */}
+      <Modal
+        open={showAddModal}
+        onClose={() => { setShowAddModal(false); setAddError(null) }}
+        title={labels.addVegetableName}
+      >
+        <form
+          action={async (formData) => {
+            const result = await addVegetableName(null, formData)
+            if (result?.success) {
+              showSuccess(labels.successSaved)
+              setShowAddModal(false)
+              setAddError(null)
+            } else if (result?.error === 'duplicate') {
+              setAddError(labels.duplicateName)
+            } else {
+              showError(result?.error || labels.errorOccurred)
+            }
+          }}
+          className="space-y-4"
+        >
+          {addError && (
+            <p className="text-sm text-red-600">{addError}</p>
+          )}
+          <div>
             <label className="mb-1 block text-sm font-medium">{labels.vegetableName}</label>
             <input
               type="text"
@@ -37,24 +68,31 @@ export function VegetableNamesPage({
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium">{labels.unit}</label>
-            <select
+            <SearchableSelect
               name="unit"
               required
-              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-            >
-              {VEGETABLE_UNITS.map((u) => (
-                <option key={u.value} value={u.value}>{labels[u.labelKey]}</option>
-              ))}
-            </select>
+              defaultValue="kg"
+              placeholder={labels.unit}
+              options={VEGETABLE_UNITS.map((u) => ({ value: u.value, label: labels[u.labelKey] }))}
+            />
           </div>
-          <button
-            type="submit"
-            className="w-full rounded-lg bg-primary-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 sm:w-auto"
-          >
-            {labels.addVegetableName}
-          </button>
-        </div>
-      </form>
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              className="flex-1 rounded-lg bg-primary-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700"
+            >
+              {labels.save}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setShowAddModal(false); setAddError(null) }}
+              className="flex-1 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
+            >
+              {labels.cancel}
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Vegetable Names List */}
       <div className="card overflow-x-auto">
@@ -88,67 +126,13 @@ function VegetableNameRow({
   vegetableName: VegetableName
   labels: Record<string, string>
 }) {
-  const [editing, setEditing] = useState(false)
-  const [confirming, setConfirming] = useState(false)
-  const [editState, editAction] = useActionState(updateVegetableName, { error: null as string | null })
+  const { showSuccess, showError } = useToast()
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
 
   const unitLabel = VEGETABLE_UNITS.find((u) => u.value === vegetableName.unit)
   const unitDisplay = unitLabel ? labels[unitLabel.labelKey] : vegetableName.unit
-
-  if (editing) {
-    return (
-      <tr className="border-b border-gray-100">
-        <td className="py-3 pe-4" colSpan={3}>
-          <form action={editAction} className="space-y-2">
-            <div className="flex flex-wrap items-end gap-3">
-              <input type="hidden" name="id" value={vegetableName.id} />
-              <div className="w-full sm:w-auto sm:flex-1">
-                <label className="mb-1 block text-xs font-medium">{labels.vegetableName}</label>
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  defaultValue={vegetableName.name}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium">{labels.unit}</label>
-                <select
-                  name="unit"
-                  required
-                  defaultValue={vegetableName.unit}
-                  className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                >
-                  {VEGETABLE_UNITS.map((u) => (
-                    <option key={u.value} value={u.value}>{labels[u.labelKey]}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="rounded-lg bg-primary-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-primary-700"
-                >
-                  {labels.save}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditing(false)}
-                  className="rounded-lg border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50"
-                >
-                  {labels.cancel}
-                </button>
-              </div>
-            </div>
-            {editState?.error === 'duplicate' && (
-              <p className="text-sm text-red-600">{labels.duplicateName}</p>
-            )}
-          </form>
-        </td>
-      </tr>
-    )
-  }
 
   return (
     <tr className="border-b border-gray-100">
@@ -157,35 +141,100 @@ function VegetableNameRow({
       <td className="py-3">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setEditing(true)}
+            onClick={() => { setShowEditModal(true); setEditError(null) }}
             className="text-primary-600 hover:underline"
           >
             {labels.editVegetableName}
           </button>
-          {!confirming ? (
-            <button
-              onClick={() => setConfirming(true)}
-              className="text-red-600 hover:underline"
-            >
-              {labels.deleteClient}
-            </button>
-          ) : (
-            <form action={deleteVegetableName} className="inline-flex items-center gap-2">
-              <input type="hidden" name="id" value={vegetableName.id} />
-              <span className="text-sm text-red-600">{labels.deleteConfirm}</span>
-              <button type="submit" className="font-medium text-red-700 hover:underline">
-                ✓
+          <button
+            onClick={() => setDeleteOpen(true)}
+            className="text-red-600 hover:underline"
+          >
+            {labels.deleteClient}
+          </button>
+          <ConfirmModal
+            open={deleteOpen}
+            onClose={() => setDeleteOpen(false)}
+            onConfirm={async () => {
+              const formData = new FormData()
+              formData.append('id', vegetableName.id)
+              const result = await deleteVegetableName(formData)
+              if (result?.success) {
+                showSuccess(labels.successDeleted)
+                setDeleteOpen(false)
+              } else {
+                showError(result?.error || labels.errorOccurred)
+              }
+            }}
+            title={labels.deleteClient}
+            message={labels.deleteConfirm}
+            confirmLabel={labels.deleteClient}
+            cancelLabel={labels.cancel}
+          />
+        </div>
+
+        {/* Edit Modal */}
+        <Modal
+          open={showEditModal}
+          onClose={() => { setShowEditModal(false); setEditError(null) }}
+          title={labels.editVegetableName}
+        >
+          <form
+            action={async (formData) => {
+              const result = await updateVegetableName(null, formData)
+              if (result?.success) {
+                showSuccess(labels.successSaved)
+                setShowEditModal(false)
+                setEditError(null)
+              } else if (result?.error === 'duplicate') {
+                setEditError(labels.duplicateName)
+              } else {
+                showError(result?.error || labels.errorOccurred)
+              }
+            }}
+            className="space-y-4"
+          >
+            <input type="hidden" name="id" value={vegetableName.id} />
+            {editError && (
+              <p className="text-sm text-red-600">{editError}</p>
+            )}
+            <div>
+              <label className="mb-1 block text-sm font-medium">{labels.vegetableName}</label>
+              <input
+                type="text"
+                name="name"
+                required
+                defaultValue={vegetableName.name}
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">{labels.unit}</label>
+              <SearchableSelect
+                name="unit"
+                required
+                defaultValue={vegetableName.unit}
+                placeholder={labels.unit}
+                options={VEGETABLE_UNITS.map((u) => ({ value: u.value, label: labels[u.labelKey] }))}
+              />
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                className="flex-1 rounded-lg bg-primary-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700"
+              >
+                {labels.save}
               </button>
               <button
                 type="button"
-                onClick={() => setConfirming(false)}
-                className="font-medium text-gray-500 hover:underline"
+                onClick={() => { setShowEditModal(false); setEditError(null) }}
+                className="flex-1 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
               >
-                ✕
+                {labels.cancel}
               </button>
-            </form>
-          )}
-        </div>
+            </div>
+          </form>
+        </Modal>
       </td>
     </tr>
   )

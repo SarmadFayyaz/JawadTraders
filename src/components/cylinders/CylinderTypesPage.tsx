@@ -1,9 +1,12 @@
 'use client'
 
-import { useState, useActionState } from 'react'
+import { useState } from 'react'
 import { useLanguage } from '@/lib/language-context'
+import { useToast } from '@/lib/toast-context'
 import { formatCurrency } from '@/lib/utils'
 import { addCylinderType, updateCylinderType, deleteCylinderType } from '@/app/settings/cylinder-types/actions'
+import { Modal } from '@/components/ui/Modal'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import type { CylinderType } from '@/types/database'
 
 export function CylinderTypesPage({
@@ -12,19 +15,41 @@ export function CylinderTypesPage({
   cylinderTypes: CylinderType[]
 }) {
   const { labels, dateLocale } = useLanguage()
-  const [state, formAction] = useActionState(addCylinderType, { error: null as string | null })
+  const { showSuccess, showError } = useToast()
+  const [addModalOpen, setAddModalOpen] = useState(false)
+  const [addDuplicateError, setAddDuplicateError] = useState(false)
+
+  async function handleAddSubmit(formData: FormData) {
+    setAddDuplicateError(false)
+    const result = await addCylinderType(formData)
+    if (result?.success) {
+      showSuccess(labels.successSaved)
+      setAddModalOpen(false)
+    } else if (result?.error === 'duplicate') {
+      setAddDuplicateError(true)
+    } else {
+      showError(result?.error || labels.errorOccurred)
+    }
+  }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold sm:text-2xl">{labels.cylinderTypes}</h1>
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-xl font-bold sm:text-2xl">{labels.cylinderTypes}</h1>
+        <button
+          onClick={() => { setAddDuplicateError(false); setAddModalOpen(true) }}
+          className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700"
+        >
+          {labels.addCylinderType}
+        </button>
+      </div>
 
-      {/* Add Cylinder Type Form */}
-      <form action={formAction} className="card space-y-4 p-4 sm:p-6">
-        <h2 className="text-base font-semibold text-primary-700 sm:text-lg">{labels.addCylinderType}</h2>
-        {state?.error === 'duplicate' && (
-          <p className="text-sm text-red-600">{labels.duplicateName}</p>
-        )}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      {/* Add Cylinder Type Modal */}
+      <Modal open={addModalOpen} onClose={() => setAddModalOpen(false)} title={labels.addCylinderType}>
+        <form action={handleAddSubmit} className="space-y-4">
+          {addDuplicateError && (
+            <p className="text-sm text-red-600">{labels.duplicateName}</p>
+          )}
           <div>
             <label className="mb-1 block text-sm font-medium">{labels.cylinderName}</label>
             <input
@@ -83,14 +108,14 @@ export function CylinderTypesPage({
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
             />
           </div>
-        </div>
-        <button
-          type="submit"
-          className="rounded-lg bg-primary-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700"
-        >
-          {labels.addCylinderType}
-        </button>
-      </form>
+          <button
+            type="submit"
+            className="w-full rounded-lg bg-primary-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700"
+          >
+            {labels.addCylinderType}
+          </button>
+        </form>
+      </Modal>
 
       {/* Cylinder Types List */}
       <div className="card overflow-x-auto">
@@ -129,144 +154,156 @@ function CylinderTypeRow({
   labels: Record<string, string>
   dateLocale: string
 }) {
-  const [editing, setEditing] = useState(false)
-  const [confirming, setConfirming] = useState(false)
-  const [editState, editAction] = useActionState(updateCylinderType, { error: null as string | null })
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [editDuplicateError, setEditDuplicateError] = useState(false)
+  const { showSuccess, showError } = useToast()
 
-  if (editing) {
-    return (
-      <tr className="border-b border-gray-100">
-        <td className="py-3 pe-4" colSpan={6}>
-          <form action={editAction} className="space-y-2">
-            <div className="flex flex-wrap items-end gap-3">
-              <input type="hidden" name="id" value={cylinderType.id} />
-              <div>
-                <label className="mb-1 block text-xs font-medium">{labels.cylinderName}</label>
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  defaultValue={cylinderType.name}
-                  className="w-36 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium">{labels.cylinderWeightKg}</label>
-                <input
-                  type="number"
-                  name="weight_kg"
-                  required
-                  min="0.01"
-                  step="0.01"
-                  dir="ltr"
-                  defaultValue={cylinderType.weight_kg}
-                  className="w-24 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium">{labels.cylinderPrice}</label>
-                <input
-                  type="number"
-                  name="cylinder_price"
-                  required
-                  min="0"
-                  step="1"
-                  dir="ltr"
-                  defaultValue={cylinderType.cylinder_price}
-                  className="w-28 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium">{labels.gasPrice}</label>
-                <input
-                  type="number"
-                  name="gas_price"
-                  required
-                  min="0"
-                  step="1"
-                  dir="ltr"
-                  defaultValue={cylinderType.gas_price}
-                  className="w-28 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium">{labels.noOfCylinders}</label>
-                <input
-                  type="number"
-                  name="no_of_cylinders"
-                  required
-                  min="0"
-                  step="1"
-                  dir="ltr"
-                  defaultValue={cylinderType.no_of_cylinders}
-                  className="w-24 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="rounded-lg bg-primary-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-primary-700"
-                >
-                  {labels.save}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditing(false)}
-                  className="rounded-lg border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50"
-                >
-                  {labels.cancel}
-                </button>
-              </div>
-            </div>
-            {editState?.error === 'duplicate' && (
-              <p className="text-sm text-red-600">{labels.duplicateName}</p>
-            )}
-          </form>
-        </td>
-      </tr>
-    )
+  async function handleEditSubmit(formData: FormData) {
+    setEditDuplicateError(false)
+    const result = await updateCylinderType(formData)
+    if (result?.success) {
+      showSuccess(labels.successSaved)
+      setEditModalOpen(false)
+    } else if (result?.error === 'duplicate') {
+      setEditDuplicateError(true)
+    } else {
+      showError(result?.error || labels.errorOccurred)
+    }
   }
 
   return (
-    <tr className="border-b border-gray-100">
-      <td className="py-3 pe-4 font-medium">{cylinderType.name}</td>
-      <td className="py-3 pe-4" dir="ltr">{cylinderType.weight_kg} kg</td>
-      <td className="py-3 pe-4" dir="ltr">{formatCurrency(cylinderType.cylinder_price, dateLocale)}</td>
-      <td className="py-3 pe-4" dir="ltr">{formatCurrency(cylinderType.gas_price, dateLocale)}</td>
-      <td className="py-3 pe-4" dir="ltr">{cylinderType.no_of_cylinders}</td>
-      <td className="py-3">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setEditing(true)}
-            className="text-primary-600 hover:underline"
-          >
-            {labels.editCylinderType}
-          </button>
-          {!confirming ? (
+    <>
+      <tr className="border-b border-gray-100">
+        <td className="py-3 pe-4 font-medium">{cylinderType.name}</td>
+        <td className="py-3 pe-4" dir="ltr">{cylinderType.weight_kg} kg</td>
+        <td className="py-3 pe-4" dir="ltr">{formatCurrency(cylinderType.cylinder_price, dateLocale)}</td>
+        <td className="py-3 pe-4" dir="ltr">{formatCurrency(cylinderType.gas_price, dateLocale)}</td>
+        <td className="py-3 pe-4" dir="ltr">{cylinderType.no_of_cylinders}</td>
+        <td className="py-3">
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => setConfirming(true)}
+              onClick={() => { setEditDuplicateError(false); setEditModalOpen(true) }}
+              className="text-primary-600 hover:underline"
+            >
+              {labels.editCylinderType}
+            </button>
+            <button
+              onClick={() => setDeleteOpen(true)}
               className="text-red-600 hover:underline"
             >
               {labels.deleteClient}
             </button>
-          ) : (
-            <form action={deleteCylinderType} className="inline-flex items-center gap-2">
-              <input type="hidden" name="id" value={cylinderType.id} />
-              <span className="text-sm text-red-600">{labels.deleteConfirm}</span>
-              <button type="submit" className="font-medium text-red-700 hover:underline">
-                ✓
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirming(false)}
-                className="font-medium text-gray-500 hover:underline"
-              >
-                ✕
-              </button>
-            </form>
+          </div>
+        </td>
+      </tr>
+
+      {/* Edit Cylinder Type Modal */}
+      <Modal open={editModalOpen} onClose={() => setEditModalOpen(false)} title={labels.editCylinderType}>
+        <form action={handleEditSubmit} className="space-y-4">
+          <input type="hidden" name="id" value={cylinderType.id} />
+          {editDuplicateError && (
+            <p className="text-sm text-red-600">{labels.duplicateName}</p>
           )}
-        </div>
-      </td>
-    </tr>
+          <div>
+            <label className="mb-1 block text-sm font-medium">{labels.cylinderName}</label>
+            <input
+              type="text"
+              name="name"
+              required
+              defaultValue={cylinderType.name}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium">{labels.cylinderWeightKg}</label>
+            <input
+              type="number"
+              name="weight_kg"
+              required
+              min="0.01"
+              step="0.01"
+              dir="ltr"
+              defaultValue={cylinderType.weight_kg}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium">{labels.cylinderPrice}</label>
+            <input
+              type="number"
+              name="cylinder_price"
+              required
+              min="0"
+              step="1"
+              dir="ltr"
+              defaultValue={cylinderType.cylinder_price}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium">{labels.gasPrice}</label>
+            <input
+              type="number"
+              name="gas_price"
+              required
+              min="0"
+              step="1"
+              dir="ltr"
+              defaultValue={cylinderType.gas_price}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium">{labels.noOfCylinders}</label>
+            <input
+              type="number"
+              name="no_of_cylinders"
+              required
+              min="0"
+              step="1"
+              dir="ltr"
+              defaultValue={cylinderType.no_of_cylinders}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+            />
+          </div>
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              className="flex-1 rounded-lg bg-primary-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700"
+            >
+              {labels.save}
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditModalOpen(false)}
+              className="rounded-lg border border-gray-300 px-6 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"
+            >
+              {labels.cancel}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      <ConfirmModal
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={async () => {
+          const formData = new FormData()
+          formData.append('id', cylinderType.id)
+          const result = await deleteCylinderType(formData)
+          if (result?.success) {
+            showSuccess(labels.successDeleted)
+            setDeleteOpen(false)
+          } else {
+            showError(result?.error || labels.errorOccurred)
+          }
+        }}
+        title={labels.deleteClient}
+        message={labels.deleteConfirm}
+        confirmLabel={labels.deleteClient}
+        cancelLabel={labels.cancel}
+      />
+    </>
   )
 }

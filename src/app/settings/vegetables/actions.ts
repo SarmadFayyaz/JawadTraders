@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 
-export async function addVegetableName(_prev: { error: string | null }, formData: FormData) {
+export async function addVegetableName(_prev: { error: string | null } | null, formData: FormData) {
   const supabase = await createClient()
   const name = (formData.get('name') as string).trim()
 
@@ -21,13 +21,13 @@ export async function addVegetableName(_prev: { error: string | null }, formData
 
   const { error } = await supabase.from('vegetable_names').insert({ name, unit })
 
-  if (error) throw error
+  if (error) return { error: error.message || 'Error' }
 
   revalidatePath('/settings/vegetables')
-  return { error: null }
+  return { error: null, success: true }
 }
 
-export async function updateVegetableName(_prev: { error: string | null }, formData: FormData) {
+export async function updateVegetableName(_prev: { error: string | null } | null, formData: FormData) {
   const supabase = await createClient()
   const id = formData.get('id') as string
   const name = (formData.get('name') as string).trim()
@@ -50,10 +50,10 @@ export async function updateVegetableName(_prev: { error: string | null }, formD
     .update({ name, unit })
     .eq('id', id)
 
-  if (error) throw error
+  if (error) return { error: error.message || 'Error' }
 
   revalidatePath('/settings/vegetables')
-  return { error: null }
+  return { error: null, success: true }
 }
 
 export async function deleteVegetableName(formData: FormData) {
@@ -63,7 +63,8 @@ export async function deleteVegetableName(formData: FormData) {
 
   const { error } = await supabase.from('vegetable_names').delete().eq('id', id)
 
-  if (error) throw error
+  if (error) return { error: error.message || 'Error' }
 
   revalidatePath('/settings/vegetables')
+  return { success: true }
 }

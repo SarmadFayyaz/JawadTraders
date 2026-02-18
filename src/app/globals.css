@@ -56,6 +56,18 @@ input[type="tel"] {
   direction: ltr;
 }
 
+/* Hide number input spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 html[dir="rtl"] input[type="number"],
 html[dir="rtl"] input[type="tel"] {
   text-align: right;
@@ -112,4 +124,48 @@ html[dir="rtl"] input[type="tel"] {
 /* Smooth scroll behavior */
 html {
   scroll-behavior: smooth;
+}
+
+/* Toast slide-in animation */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+html[dir="rtl"] .animate-slide-in {
+  animation: slide-in-rtl 0.3s ease-out;
+}
+
+@keyframes slide-in-rtl {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
+
+/* DatePicker overrides */
+.react-datepicker-wrapper {
+  width: auto;
+}
+
+.react-datepicker__input-container input {
+  direction: ltr;
+}
+
+.react-datepicker-popper {
+  z-index: 60 !important;
 }

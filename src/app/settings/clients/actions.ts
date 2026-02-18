@@ -1,10 +1,9 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
-export async function addClient(_prev: { error: string | null }, formData: FormData) {
+export async function addClient(_prev: { error: string | null } | null, formData: FormData) {
   const supabase = await createClient()
   const name = (formData.get('name') as string).trim()
 
@@ -23,13 +22,13 @@ export async function addClient(_prev: { error: string | null }, formData: FormD
     phone: (formData.get('phone') as string) || null,
   })
 
-  if (error) throw error
+  if (error) return { error: error.message || 'Error' }
 
   revalidatePath('/settings/clients')
-  redirect('/settings/clients')
+  return { error: null, success: true }
 }
 
-export async function updateClient(_prev: { error: string | null }, formData: FormData) {
+export async function updateClient(_prev: { error: string | null } | null, formData: FormData) {
   const supabase = await createClient()
   const id = formData.get('id') as string
   const name = (formData.get('name') as string).trim()
@@ -53,10 +52,10 @@ export async function updateClient(_prev: { error: string | null }, formData: Fo
     })
     .eq('id', id)
 
-  if (error) throw error
+  if (error) return { error: error.message || 'Error' }
 
   revalidatePath('/settings/clients')
-  redirect('/settings/clients')
+  return { error: null, success: true }
 }
 
 export async function deleteClient(formData: FormData) {
@@ -66,7 +65,8 @@ export async function deleteClient(formData: FormData) {
 
   const { error } = await supabase.from('clients').delete().eq('id', id)
 
-  if (error) throw error
+  if (error) return { error: error.message || 'Error' }
 
   revalidatePath('/settings/clients')
+  return { success: true }
 }

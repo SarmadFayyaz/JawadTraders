@@ -23,7 +23,6 @@ export default async function ItemsPage({ params }: { params: Promise<{ id: stri
 
   return (
     <DashboardShell>
-      <h1 className="mb-4 text-xl font-bold sm:text-2xl">{(client as any).name}</h1>
       <ClientItemsPage client={client as any} items={(items as any) ?? []} />
     </DashboardShell>
   )

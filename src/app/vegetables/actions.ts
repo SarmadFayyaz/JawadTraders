@@ -15,9 +15,10 @@ export async function addVegetable(formData: FormData) {
     date,
   })
 
-  if (error) throw new Error(error.message)
+  if (error) return { error: error.message || 'Error' }
 
   revalidatePath(`/vegetables?date=${date}`)
+  return { success: true }
 }
 
 export async function updateVegetable(formData: FormData) {
@@ -31,9 +32,10 @@ export async function updateVegetable(formData: FormData) {
     price_sold: parseFloat(formData.get('price_sold') as string) || 0,
   }).eq('id', id)
 
-  if (error) throw new Error(error.message)
+  if (error) return { error: error.message || 'Error' }
 
   revalidatePath(`/vegetables?date=${date}`)
+  return { success: true }
 }
 
 export async function deleteVegetable(formData: FormData) {
@@ -44,7 +46,8 @@ export async function deleteVegetable(formData: FormData) {
 
   const { error } = await supabase.from('vegetables').delete().eq('id', id)
 
-  if (error) throw error
+  if (error) return { error: error.message || 'Error' }
 
   revalidatePath(`/vegetables?date=${date}`)
+  return { success: true }
 }

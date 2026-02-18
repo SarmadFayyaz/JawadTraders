@@ -1,18 +1,18 @@
 import { createClient } from '@/lib/supabase/server'
 import { DashboardShell } from '@/components/layout/DashboardShell'
-import { ClientList } from '@/components/clients/ClientList'
+import { SuppliersPage } from '@/components/suppliers/SuppliersPage'
 
-export default async function ClientsPage() {
+export default async function SuppliersRoute() {
   const supabase = await createClient()
 
-  const { data: clients } = await supabase
-    .from('clients')
+  const { data: suppliers } = await supabase
+    .from('suppliers')
     .select('*')
     .order('name')
 
   return (
     <DashboardShell>
-      <ClientList clients={(clients as any) ?? []} />
+      <SuppliersPage suppliers={(suppliers as any) ?? []} />
     </DashboardShell>
   )
 }
